@@ -1,0 +1,15 @@
+{
+    "users": [
+        {
+            "id": "1",
+            "username": "test@example.com",
+            "name": "Test User"
+        }
+    ],
+    "data": [
+        {
+            "id": "1",
+            "name": "Product 1"
+        }
+    ]
+}
