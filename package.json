@@ -12,6 +12,7 @@
   "dependencies": {
     "@react-router/node": "^8",
     "@react-router/serve": "^8",
+    "cookie-parser": "^1.4.7",
     "isbot": "^5.1.36",
     "json-server": "^0.17.4",
     "jsonwebtoken": "^9.0.3",
