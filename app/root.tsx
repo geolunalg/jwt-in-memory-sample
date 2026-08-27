@@ -10,6 +10,23 @@ import {
 import type { Route } from "./+types/root";
 import "./app.css";
 
+import { tokenService } from "./utils/tokenService";
+
+export async function clientLoader() {
+  const response = await fetch("/api/v1/refresh", {
+    method: "POST",
+    credentials: "include",
+  });
+
+  if (response.ok) {
+    const { accessToken } = await response.json();
+
+    tokenService.setToken(accessToken);
+  }
+
+  return null;
+}
+
 export const links: Route.LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
   {

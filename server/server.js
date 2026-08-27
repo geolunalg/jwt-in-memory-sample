@@ -61,7 +61,6 @@ server.post(`${route}/login`, (req, res) => {
 });
 
 server.post(`${route}/refresh`, (req, res) => {
-  console.log(req.cookies)
   const refreshToken = req.cookies.refreshToken;
 
   if (!refreshToken) {

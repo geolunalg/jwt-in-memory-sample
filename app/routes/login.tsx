@@ -7,6 +7,7 @@ export async function clientAction({ request }: Route.ClientActionArgs) {
 
     const response = await fetch("/api/v1/login", {
         method: "POST",
+        credentials: "include",
         headers: {
             "Content-Type": "application/json",
         },
