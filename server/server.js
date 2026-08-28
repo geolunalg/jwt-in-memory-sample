@@ -8,10 +8,12 @@ const router = jsonServer.router("./server/db.json");
 const middlewares = jsonServer.defaults();
 
 const route = "/api/v1"
-
 server.use(middlewares);
 server.use(jsonServer.bodyParser);
 server.use(cookieParser());
+
+// auth secret
+const secret = "super-secure-fake-secret";
 
 server.post(`${route}/login`, (req, res) => {
   const { username, password } = req.body;
@@ -23,16 +25,21 @@ server.post(`${route}/login`, (req, res) => {
     });
   }
 
+  const seconds = 60; // true secons representation
+  const issuedAt = Math.floor(Date.now() / 1000);
+  const expiresAt = issuedAt + seconds;
   const token = jwt.sign(
     {
-      sub: "1",
-      username,
-      role: "user",
+      iss: "Fake Server", // service name
+      sub: 1,
+      iat: issuedAt,
+      exp: expiresAt,
+      type: "access" // this can be ommited
     },
-    "fake-secret",
+    secret,
     {
-      expiresIn: "1h",
-    }
+      algorithm: "HS256",
+    },
   );
 
   const refreshToken = jwt.sign(
@@ -103,6 +110,21 @@ function requireAuth(req, res, next) {
   const auth = req.headers.authorization;
 
   if (!auth || !auth.startsWith("Bearer ")) {
+    return res.status(401).json({
+      message: "Unauthorized",
+    });
+  }
+
+  const token = auth.split(' ')[1]
+  try {
+    const decoded = jwt.verify(token, secret);
+    console.log('Token is valid:', decoded);
+  } catch (err) {
+    if (err.name === 'TokenExpiredError') {
+      console.error('Token expired at:', err.expiredAt); // Access the specific expiration time
+    } else {
+      console.error('Invalid token:', err.message);
+    }
     return res.status(401).json({
       message: "Unauthorized",
     });
