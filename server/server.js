@@ -1,7 +1,8 @@
 // server.js
+import cookieParser from "cookie-parser";
+import crypto from "crypto";
 import jsonServer from "json-server";
 import jwt from "jsonwebtoken";
-import cookieParser from "cookie-parser";
 
 const server = jsonServer.create();
 const router = jsonServer.router("./server/db.json");
@@ -12,20 +13,18 @@ server.use(middlewares);
 server.use(jsonServer.bodyParser);
 server.use(cookieParser());
 
-// auth secret
+// secret: Used of sing access token, normally really long string
+// stored as a environment variable 
 const secret = "super-secure-fake-secret";
 
-server.post(`${route}/login`, (req, res) => {
-  const { username, password } = req.body;
+// refreshToken: On a real server this will be stored on a db table
+// for this server will just store on memory
+const rfStorage = {};
 
-  // Fake authentication
-  if (username !== "test@example.com" || password !== "password") {
-    return res.status(401).json({
-      message: "Invalid credentials",
-    });
-  }
-
-  const seconds = 60; // true secons representation
+// create a new access token for authentication
+// token expires after one minute
+function getAccessToken() {
+  const seconds = 60; // true seconds representation
   const issuedAt = Math.floor(Date.now() / 1000);
   const expiresAt = issuedAt + seconds;
   const token = jwt.sign(
@@ -41,71 +40,85 @@ server.post(`${route}/login`, (req, res) => {
       algorithm: "HS256",
     },
   );
+  return token;
+}
 
-  const refreshToken = jwt.sign(
-    {
-      sub: "1",
-      type: "refresh",
-    },
-    "fake-refresh-secret",
-    {
-      expiresIn: "7d",
-    }
-  );
+// creates a new refresh token for authentication
+// and stores it in memory for 1 hour
+function getRefreshToken() {
+  const token = crypto.randomBytes(32).toString("hex");
+  const hour = 60 * 60 * 1000; // (1hr)
+  const createdAt = Date.now();
+  const expiresAt = createdAt + hour;
+  rfStorage.refreshToken = {
+    token,
+    createdAt,
+    expiresAt,
+  }
 
+  return rfStorage.refreshToken.token;
+}
+
+server.post(`${route}/login`, (req, res) => {
+  const { username, password } = req.body;
+
+  // Fake authentication
+  if (username !== "test@example.com" || password !== "password") {
+    return res.status(401).json({
+      message: "Invalid credentials",
+    });
+  }
+
+  const refreshToken = getRefreshToken();
   res.cookie("refreshToken", refreshToken, {
     httpOnly: true,
     secure: false, // true when using HTTPS
     sameSite: "lax",
-    maxAge: 7 * 24 * 60 * 60 * 1000,
+    maxAge: 60 * 60 * 1000, // tell the client to clear the cookie after 1hr
   });
 
+  const accessToken = getAccessToken();
   res.json({
-    accessToken: token,
+    accessToken,
     tokenType: "Bearer",
     expiresIn: 3600,
   });
 });
 
 server.post(`${route}/refresh`, (req, res) => {
-  const refreshToken = req.cookies.refreshToken;
+  const currRfToken = req.cookies.refreshToken;
 
-  if (!refreshToken) {
+  // check that the refresh token is valid
+  if (!currRfToken || currRfToken != rfStorage?.refreshToken?.token) {
     return res.status(401).json({
-      message: "Refresh token missing",
+      message: "Refresh token is unauthorized",
     });
   }
 
-  try {
-    const payload = jwt.verify(
-      refreshToken,
-      "fake-refresh-secret"
-    );
-
-    const accessToken = jwt.sign(
-      {
-        sub: payload.sub,
-        username: "test@example.com",
-        role: "user",
-      },
-      "fake-secret",
-      {
-        expiresIn: "15m",
-      }
-    );
-
-    res.json({
-      accessToken,
-      tokenType: "Bearer",
-      expiresIn: 900,
-    });
-  } catch {
+  // check the refresh token has not expired
+  if (Date.now() > rfStorage.refreshToken.expiresAt) {
     return res.status(401).json({
-      message: "Invalid refresh token",
+      message: "Refresh token has expired",
     });
   }
+
+  const refreshToken = getRefreshToken();
+  res.cookie("refreshToken", refreshToken, {
+    httpOnly: true,
+    secure: false, // true when using HTTPS
+    sameSite: "lax",
+    maxAge: 60 * 60 * 1000, // tell the client to clear the cookie after 1hr
+  });
+
+  const accessToken = getAccessToken();
+  res.json({
+    accessToken,
+    tokenType: "Bearer",
+    expiresIn: 3600,
+  });
 });
 
+// middleware to check authenticaion for json-server routes in db.json
 function requireAuth(req, res, next) {
   const auth = req.headers.authorization;
 
