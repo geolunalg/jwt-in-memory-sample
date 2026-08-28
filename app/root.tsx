@@ -20,7 +20,6 @@ export async function clientLoader() {
 
   if (response.ok) {
     const { accessToken } = await response.json();
-
     tokenService.setToken(accessToken);
   }
 

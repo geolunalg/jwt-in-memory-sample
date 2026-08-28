@@ -7,18 +7,34 @@ export async function apiFetch(
     const headers = new Headers(init.headers);
 
     const token = tokenService.getToken();
-
     if (token) {
         headers.set("Authorization", `Bearer ${token}`);
     }
 
-    const response = await fetch(input, {
+    let response = await fetch(input, {
         ...init,
         headers,
     });
 
     if (response.status === 401) {
-        tokenService.clearToken();
+        response = await fetch("/api/v1/refresh", {
+            method: "POST",
+            credentials: "include",
+        });
+
+        if (!response.ok) {
+            tokenService.clearToken();
+            return response
+        }
+
+        const { accessToken } = await response.json();
+        tokenService.setToken(accessToken);
+        headers.set("Authorization", `Bearer ${accessToken}`);
+
+        response = await fetch(input, {
+            ...init,
+            headers,
+        });
     }
 
     return response;
