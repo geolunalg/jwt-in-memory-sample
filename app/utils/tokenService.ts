@@ -1,3 +1,5 @@
+// This is the class that manages the access 
+// token in memory on the frontend.
 class TokenService {
     #token: string | null = null;
 

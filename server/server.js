@@ -13,15 +13,15 @@ server.use(middlewares);
 server.use(jsonServer.bodyParser);
 server.use(cookieParser());
 
-// secret: Used of sing access token, normally really long string
+// secret: Used to sign access token, normally really long string
 // stored as a environment variable 
 const secret = "super-secure-fake-secret";
 
 // refreshToken: On a real server this will be stored on a db table
-// for this server will just store on memory
+// for this example will just store it in memory
 const rfStorage = {};
 
-// create a new access token for authentication
+// create a new access token for authentication,
 // token expires after one minute
 function getAccessToken() {
   const seconds = 60; // true seconds representation
@@ -81,7 +81,7 @@ server.post(`${route}/login`, (req, res) => {
   res.json({
     accessToken,
     tokenType: "Bearer",
-    expiresIn: 3600,
+    expiresIn: 60, // (seconds)
   });
 });
 
@@ -102,6 +102,8 @@ server.post(`${route}/refresh`, (req, res) => {
     });
   }
 
+  // When the refresh token is used discard it, and send a new
+  // refresh token cookie. This will update the value in the client
   const refreshToken = getRefreshToken();
   res.cookie("refreshToken", refreshToken, {
     httpOnly: true,
@@ -110,6 +112,7 @@ server.post(`${route}/refresh`, (req, res) => {
     maxAge: 60 * 60 * 1000, // tell the client to clear the cookie after 1hr
   });
 
+  // create a new access token and send it to the client
   const accessToken = getAccessToken();
   res.json({
     accessToken,

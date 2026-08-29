@@ -12,12 +12,18 @@ import "./app.css";
 
 import { tokenService } from "./utils/tokenService";
 
+// This function runs when the browser is refreshed. `root.tsx` is 
+// the entry point for the entire app, meaning that regardless of 
+// the route, every page in the app will load from this root file. 
+// When the page is refreshed, the access token is lost, so a new 
+// one needs to be requested via the refresh API.
 export async function clientLoader() {
   const response = await fetch("/api/v1/refresh", {
     method: "POST",
     credentials: "include",
   });
 
+  // If we get a successful response store the access token in memory
   if (response.ok) {
     const { accessToken } = await response.json();
     tokenService.setToken(accessToken);
