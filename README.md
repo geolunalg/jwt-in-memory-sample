@@ -1,24 +1,47 @@
-# Welcome to React Router!
+# JWT In-Memory Token Sample
 
-A modern, production-ready template for building full-stack React applications using React Router.
+## Description
 
-[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/remix-run/react-router-templates/tree/main/default)
+A full-stack sample application demonstrating JWT (JSON Web Token) authentication with **access tokens** and **refresh tokens** stored in memory on the frontend. This project showcases best practices for token-based authentication in modern web applications using React Router, TypeScript, and Node.js.
 
-## Features
+### Key Features
 
-- 🚀 Server-side rendering
-- ⚡️ Hot Module Replacement (HMR)
-- 📦 Asset bundling and optimization
-- 🔄 Data loading and mutations
-- 🔒 TypeScript by default
-- 🎉 TailwindCSS for styling
-- 📖 [React Router docs](https://reactrouter.com/)
+- **JWT Authentication**: Access tokens (short-lived) and refresh tokens (long-lived) for secure user sessions
+- **In-Memory Token Storage**: Demonstrates storing tokens in memory on the client-side using a TokenService class
+- **Protected Routes**: Dashboard and other routes protected by token validation
+- **Login Flow**: Simple login interface that requests tokens from the server
+- **Full-Stack Implementation**: 
+  - Frontend: React with React Router 8, TypeScript, and Tailwind CSS
+  - Backend: Express-based server with JSON Server for mock data, JWT signing, and token management
+- **Refresh Token Rotation**: Server stores refresh tokens in memory for token renewal
+
+## Technology Stack
+
+- **Frontend**: React 19, React Router 8, TypeScript, Tailwind CSS, Vite
+- **Backend**: Node.js, Express, JSON Server, jsonwebtoken
+- **Authentication**: JWT (HS256 algorithm), Refresh Token Pattern
+- **Styling**: Tailwind CSS
+
+## Project Structure
+
+```
+├── app/
+│   ├── routes/           # Route components (home, login, dashboard)
+│   ├── utils/
+│   │   ├── api.ts       # API utilities
+│   │   └── tokenService.ts  # In-memory token management
+│   ├── root.tsx         # Root layout component
+│   └── routes.ts        # Route definitions
+├── server/
+│   ├── server.js        # Backend server with JWT logic
+│   └── db.json          # Mock database
+├── public/              # Static assets
+└── package.json         # Dependencies and scripts
+```
 
 ## Getting Started
 
 ### Installation
-
-Install the dependencies:
 
 ```bash
 npm install
@@ -26,62 +49,27 @@ npm install
 
 ### Development
 
-Start the development server with HMR:
-
 ```bash
+# Terminal 1: Start the backend server
+npm run server
+
+# Terminal 2: Start the frontend development server
 npm run dev
 ```
 
-Your application will be available at `http://localhost:5173`.
+### Login
 
-## Building for Production
+Default credentials can be set up in the backend. The application includes:
+- **Home page**: Public landing page
+- **Login page**: Authenticate with username and password
+- **Dashboard**: Protected route accessible only with valid token
 
-Create a production build:
-
-```bash
-npm run build
-```
-
-## Deployment
-
-### Docker Deployment
-
-To build and run using Docker:
+### Build and Deploy
 
 ```bash
-docker build -t my-app .
-
-# Run the container
-docker run -p 3000:3000 my-app
+npm run build    # Build for production
+npm run start    # Serve the production build
 ```
 
-The containerized application can be deployed to any platform that supports Docker, including:
 
-- AWS ECS
-- Google Cloud Run
-- Azure Container Apps
-- Digital Ocean App Platform
-- Fly.io
-- Railway
 
-### DIY Deployment
-
-If you're familiar with deploying Node applications, the built-in app server is production-ready.
-
-Make sure to deploy the output of `npm run build`
-
-```
-├── package.json
-├── package-lock.json (or pnpm-lock.yaml, or bun.lockb)
-├── build/
-│   ├── client/    # Static assets
-│   └── server/    # Server-side code
-```
-
-## Styling
-
-This template comes with [Tailwind CSS](https://tailwindcss.com/) already configured for a simple default starting experience. You can use whatever CSS framework you prefer.
-
----
-
-Built with ❤️ using React Router.
