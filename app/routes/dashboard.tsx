@@ -1,5 +1,6 @@
-import { redirect, useLoaderData, useRevalidator } from "react-router";
+import { redirect, useLoaderData, useNavigate, useRevalidator } from "react-router";
 import { apiFetch } from "~/utils/api";
+import { tokenService } from "~/utils/tokenService";
 
 // This funtion runs on page load
 export async function clientLoader() {
@@ -30,6 +31,22 @@ export default function Dashboard() {
     // working correctly, user will stay on the `dashboard` page
     const revalidator = useRevalidator();
 
+    // we will use navigate to revoke the token and get the users
+    // loged out of the application and redirect to login page
+    const navigate = useNavigate();
+    async function logout() {
+        const response = await apiFetch("/api/v1/revoke", {
+            method: "POST",
+            credentials: "include",
+        });
+
+        if (response.status != 204) {
+            console.log("Something when wrong: " + response.status);
+        }
+        tokenService.clearToken();
+        navigate("/login");
+    }
+
     return (
         <div>
             <h1>Dashboard</h1>
@@ -40,6 +57,12 @@ export default function Dashboard() {
             >
                 {revalidator.state === "loading" ? "Refreshing..." : "Reload Data"}
             </button>
+
+            <div>
+                <button
+                    onClick={logout}
+                >Logout</button>
+            </div>
         </div>
     );
 }

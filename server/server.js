@@ -121,6 +121,19 @@ server.post(`${route}/refresh`, (req, res) => {
   });
 });
 
+// revoke the token - use this to end the session on logout
+server.post(`${route}/revoke`, (req, res) => {
+  const currRfToken = req.cookies.refreshToken;
+  if (rfStorage.refreshToken.token === currRfToken) {
+    rfStorage.refreshToken = {}
+    return res.status(204).send();
+  }
+
+  // even if we get and error just revode the tokan anyway it
+  rfStorage.refreshToken = {}
+  return res.status(500).send();
+});
+
 // middleware to check authenticaion for json-server routes in db.json
 function requireAuth(req, res, next) {
   const auth = req.headers.authorization;
