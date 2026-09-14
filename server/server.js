@@ -47,7 +47,7 @@ function getAccessToken() {
 // and stores it in memory for 1 hour
 function getRefreshToken() {
   const token = crypto.randomBytes(32).toString("hex");
-  const hour = 60 * 60 * 1000; // (1hr)
+  const hour = 7 * 60 * 60 * 1000; // (1 week)
   const createdAt = Date.now();
   const expiresAt = createdAt + hour;
   rfStorage.refreshToken = {
